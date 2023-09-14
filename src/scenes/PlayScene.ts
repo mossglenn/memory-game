@@ -63,17 +63,5 @@ export default class PlayScene extends Phaser.Scene {
     console.log(JSON.stringify(this.cards[0]));
     console.log(JSON.stringify(this.tests[0]));
     console.log(JSON.stringify(this.planes[0]));
-
-    // Phaser.Actions.GridAlign(this.cards, {
-    //     width: 2,
-    //     height: 2,
-    //     cellHeight: 300,
-    //     cellWidth:300,
-    //     x: 100,
-    //     y: 100
-
-    // })
-
-    PhaserGUIAction(this);
   }
 }
