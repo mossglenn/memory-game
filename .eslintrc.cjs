@@ -4,14 +4,24 @@ module.exports = {
     es2021: true
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['prettier', 'sonarjs'],
+  plugins: ['prettier', 'sonarjs', 'import'],
   extends: [
-    'airbnb-base',
-    'airbnb-typescript/base',
+    'airbnb',
+    'airbnb-typescript',
     'prettier',
     'plugin:sonarjs/recommended',
     'plugin:deprecation/recommended'
   ],
+  settings: {
+    'import/parsers': {
+      '@typescript-eslint/parser': ['.ts', '.tsx']
+    },
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true // always try to resolve types under `<root>@types` directory even it doesn't contain any source code, like `@types/unist`
+      }
+    }
+  },
   overrides: [
     {
       env: {
@@ -31,6 +41,7 @@ module.exports = {
   rules: {
     'no-console': 1,
     'prettier/prettier': 2,
-    'import/no-extraneous-dependencies': ['error', { devDependencies: true }]
+    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+    'import/no-unresolved': 'error'
   }
 };
