@@ -1,9 +1,8 @@
-import { CardKey } from './AssetKeys.ts';
 import Phaser from 'phaser';
 import { GameSettings } from './gameSettings.ts';
 
 export default class Card extends Phaser.GameObjects.Plane {
-  key: CardKey;
+  face: string;
   scene: Phaser.Scene;
   public x: number;
   public y: number;
@@ -12,7 +11,7 @@ export default class Card extends Phaser.GameObjects.Plane {
   frontTexture: string;
 
   constructor(
-    key: CardKey,
+    face: string,
     scene: Phaser.Scene,
     x = 200,
     y = 200,
@@ -20,14 +19,14 @@ export default class Card extends Phaser.GameObjects.Plane {
     backTexture = 'back'
   ) {
     super(scene, x, y, backTexture);
-    this.key = key;
+    this.face = face;
     this.scene = scene;
     this.x = x;
     this.y = y;
     this.frontBackground = frontBackground;
     this.backTexture = backTexture;
     this.frontTexture = this.createFrontTextureKey();
-    this.setName(this.key);
+    this.setName(this.face);
     this.setInteractive;
     this.setTexture(this.frontTexture);
     scene.add.existing(this);
@@ -39,7 +38,7 @@ export default class Card extends Phaser.GameObjects.Plane {
     y = -2000,
     width = GameSettings.card.width,
     height = GameSettings.card.height,
-    key = this.key,
+    key = this.face,
     frontBackground = this.frontBackground
   ) {
     const rt = scene.add.renderTexture(x, y, width, height);
@@ -50,7 +49,7 @@ export default class Card extends Phaser.GameObjects.Plane {
       GameSettings.card.width / 2,
       GameSettings.card.height / 2
     );
-    const newKey = key.toString() + '_rendered';
+    const newKey = key.toString() + '_' + Math.round(Math.random() * 1000);
     rt.saveTexture(newKey);
     return newKey;
   }

@@ -1,4 +1,4 @@
-import { CardKey } from '../../AssetKeys.ts';
+import { CardKey } from '../AssetKeys.ts';
 
 export default class Preloader extends Phaser.Scene {
   constructor() {
