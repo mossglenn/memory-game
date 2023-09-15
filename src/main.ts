@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import Preloader from './scenes/Preloader.ts';
 import PlayScene from './scenes/PlayScene.ts';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -20,7 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
     }
   },
 
-  scene: [Preloader, PlayScene]
+  scene: [PlayScene]
 };
 
 export default new Phaser.Game(config);
