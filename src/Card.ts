@@ -28,7 +28,7 @@ export default class Card extends Phaser.GameObjects.Plane {
     this.frontTexture = this.createFrontTextureKey();
     this.setName(this.face);
     this.setInteractive;
-    this.setTexture(this.frontTexture);
+    //this.setTexture(this.frontTexture);
     scene.add.existing(this);
   }
 

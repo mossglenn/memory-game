@@ -20,8 +20,20 @@ export default class PlayScene extends Phaser.Scene {
       height: GameSettings.table.playArea.height
     };
     const playZone: PlayZone = new PlayZone(playZoneSettings);
+    playZone.zoneGroup.getChildren().map((zone) => {
+      Phaser.Display.Align.In.Center(this.add.text(0, 0, zone.name), zone);
+    });
+
+    this.faces.map((face, index) => {
+      Phaser.Display.Align.In.Center(
+        this.add.sprite(0, 0, face),
+        playZone.zoneGroup.getMatching('name', index.toString()).shift()
+      );
+    });
+
     this.deck = this.buildDeck(this.faces, this);
-    const deal = this.deal(this.deck, playZone.zones);
+    console.log(this.deck);
+    const delt = this.deal(this.deck, playZone.zoneGroup);
   }
 
   deal(deck: Card[], zoneGroup: Phaser.GameObjects.Group): string {
@@ -47,17 +59,12 @@ export default class PlayScene extends Phaser.Scene {
       : testLayout;
   }
 
-  createCard(face: string, scene: Phaser.Scene): Card {
-    const newCard = new Card(face, scene, 0, -2000);
-    return newCard;
-  }
-
   buildDeck(faces: string[], scene: Phaser.Scene): Card[] {
     const deckFaces = faces.concat(faces);
     const newDeck: Card[] = deckFaces.map((face): Card => {
-      return this.createCard(face, scene);
+      return new Card(face, scene);
     });
-    this.shuffle(newDeck);
+    //this.shuffle(newDeck);
     return newDeck;
   }
 

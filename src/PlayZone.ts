@@ -5,14 +5,13 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
   width: number;
   height: number;
   layout: Layout;
-  colZones: Phaser.GameObjects.Zone[];
-  rowZones: Phaser.GameObjects.Zone[];
+  zoneGroup: Phaser.GameObjects.Group;
 
   constructor({
     scene,
-    layout,
     width,
-    height
+    height,
+    layout
   }: {
     scene: Phaser.Scene;
     layout: Layout;
@@ -24,48 +23,53 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
     this.width = width;
     this.height = height;
     this.layout = layout;
-    this.colZones = this.alignCols(
-      this.createZonesArray(layout.cols, width / layout.cols, height)
+    this.zoneGroup = this.scene.add.group();
+    this.populateZoneGroup(
+      this.scene,
+      this.zoneGroup,
+      this.layout,
+      this.width / this.layout.cols,
+      this.height / this.layout.rows
     );
-    this.rowZones = this.alignRows(
-      this.createZonesArray(layout.rows, width, height / layout.rows)
-    );
-    this.addTempGrid();
+    //this.addTempGrid();
   }
 
-  createAlignmentZone(width: number, height: number) {
-    return this.scene.add
-      .rectangle(0, 0, width, height)
-      .setStrokeStyle(1, 0x000000);
+  populateZoneGroup(
+    scene: Phaser.Scene,
+    group: Phaser.GameObjects.Group,
+    layout: Layout,
+    width: number,
+    height: number
+  ) {
+    const keys = [...Array(layout.rows).keys()];
+    keys.map((key, index) => {
+      this.createRowOfZones(scene, group, index, layout.cols, width, height);
+    });
   }
 
-  createZonesArray(num: number, width: number, height: number) {
-    const zones: Phaser.GameObjects.Zone[] = [];
-    const keys = [...Array(num).keys()];
-    keys.map((key) => {
-      zones[key] = this.createAlignmentZone(width, height).setName(
-        key.toString()
+  createRowOfZones(
+    scene: Phaser.Scene,
+    group: Phaser.GameObjects.Group,
+    row: number,
+    num: number,
+    width: number,
+    height: number
+  ) {
+    const leftEdge = this.getLeftCenter().x!;
+    const topEdge = this.getTopCenter().y!;
+    const keys = [...Array(num)];
+    keys.map((key, index) => {
+      group.add(
+        scene.add
+          .zone(
+            leftEdge + width / 2 + width * index,
+            topEdge + height / 2 + height * row,
+            width,
+            height
+          )
+          .setName((index + num * row).toString())
       );
     });
-    return zones;
-  }
-
-  alignCols(zones: Phaser.GameObjects.Zone[], playZone = this) {
-    zones.forEach((zone, index) => {
-      Phaser.Display.Align.In.LeftCenter(zone, playZone);
-      const xShift = (playZone.width / playZone.layout.cols) * index;
-      zone.setX(zone.x + xShift);
-    });
-    return zones;
-  }
-
-  alignRows(zones: Phaser.GameObjects.Zone[], playZone = this) {
-    zones.forEach((zone, index) => {
-      Phaser.Display.Align.In.TopCenter(zone, playZone);
-      const yShift = (playZone.height / playZone.layout.rows) * index;
-      zone.setY(zone.y + yShift);
-    });
-    return zones;
   }
 
   addTempGrid() {
