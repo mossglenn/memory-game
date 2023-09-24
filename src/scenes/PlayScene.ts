@@ -1,67 +1,84 @@
-import { CardKey } from '../../AssetKeys.ts';
-import Card from '../../Card.ts';
-import { GameSettings } from '../../gameSettings.ts';
+import Card from '../Card.ts';
+import PlayZone from '../PlayZone.ts';
+import { GameSettings } from '../gameSettings.ts';
+import { Layout } from '../Types.ts';
 
 export default class PlayScene extends Phaser.Scene {
-  cards: Card[] = [];
-
-  tests: Phaser.GameObjects.Image[] = [];
-
-  planes: Phaser.GameObjects.Plane[] = [];
-
+  faces: string[] = GameSettings.deck.faces;
+  deck: Card[];
+  layout: Layout = this.findLayout(this.faces.length);
   constructor() {
     super('play');
+    this.deck = [];
   }
 
   create() {
-    this.tests.push(this.add.image(0, -2000, CardKey.ONE));
-    this.tests.push(this.add.image(0, -2000, CardKey.TWO));
-    this.tests.push(this.add.image(0, -2000, CardKey.THREE));
-    this.tests.push(this.add.image(0, -2000, CardKey.FOUR));
+    const playZoneSize =
+      this.game.config.width > this.game.config.height
+        ? Number(this.game.config.height) - GameSettings.table.playArea.margin.y
+        : Number(this.game.config.width) - GameSettings.table.playArea.margin.x;
+    const playZoneConfig = {
+      scene: this,
+      x: (playZoneSize + GameSettings.table.playArea.margin.x) / 2,
+      y: (playZoneSize + GameSettings.table.playArea.margin.y) / 2,
+      layout: this.layout,
+      width:
+        Number(this.game.config.height) - GameSettings.table.playArea.margin.y,
+      height:
+        Number(this.game.config.height) - GameSettings.table.playArea.margin.y
+    };
+    const playZone = new PlayZone(playZoneConfig);
+    this.deck = this.buildDeck(this.layout.cards, this.faces, this);
+    const shuffledDeck = this.shuffleDeck(this.deck);
+    const dealt = this.deal(shuffledDeck, playZone.dealPoints);
+    console.log(dealt);
+  }
 
-    Phaser.Actions.GridAlign(this.tests, {
-      width: 2,
-      height: 2,
-      cellHeight: 300,
-      cellWidth: 300,
-      x: 100,
-      y: 100
+  deal(deck: Card[], dealPoints: Phaser.Geom.Point[]): string {
+    if (deck.length > dealPoints.length) {
+      console.log('To many cards, not enough dealPoints');
+      return 'error';
+    }
+    deck.map((card, index) => {
+      const dealPoint = dealPoints[index];
+      card.setPosition(dealPoint.x, dealPoint.y);
     });
+    return 'success';
+  }
 
-    this.planes.push(this.add.plane(0, -2000, CardKey.ONE));
-    this.planes.push(this.add.plane(0, -2000, CardKey.TWO));
-    this.planes.push(this.add.plane(0, -2000, CardKey.THREE));
-    this.planes.push(this.add.plane(0, -2000, CardKey.FOUR));
+  findLayout(facesSize: number): { cards: number; cols: number; rows: number } {
+    const testLayout = GameSettings.deck.layout.find(
+      ({ cards }): boolean => cards == facesSize * 2
+    );
+    return testLayout == undefined
+      ? { cards: 4, cols: 2, rows: 2 }
+      : testLayout;
+  }
 
-    Phaser.Actions.GridAlign(this.planes, {
-      width: 2,
-      height: 2,
-      cellHeight: 300,
-      cellWidth: 300,
-      x: 100,
-      y: 100
+  buildDeck(num: number, faces: string[], scene: Phaser.Scene): Card[] {
+    //randomly collect the num of faces
+    const selectedFaces = [...faces]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, num);
+    const deckFaces = selectedFaces.concat([...selectedFaces]);
+    const newDeck: Card[] = deckFaces.map((face): Card => {
+      return new Card(face, scene);
     });
+    return newDeck;
+  }
 
-    this.cards.push(new Card(CardKey.FOUR, this, 800, 100));
-    this.cards.push(new Card(CardKey.THREE, this, 800, 300));
-    this.cards.push(new Card(CardKey.TWO, this, 800, 500));
-    this.cards.push(new Card(CardKey.ONE, this, 800, 700));
-    console.log(JSON.stringify(this.cards[1]));
+  shuffleDeck(deck: Card[]) {
+    const shuffledDeck = [...deck].sort(() => 0.5 - Math.random());
+    return shuffledDeck;
+  }
 
-    console.log(Object.hasOwn(this.cards[0], 'x'));
-    console.log(Object.hasOwn(this.cards[0], 'y'));
-
-    Phaser.Actions.GridAlign(this.cards, {
-      width: 2,
-      height: 2,
-      cellHeight: 300,
-      cellWidth: 300,
-      x: 100,
-      y: 100
-    });
-
-    console.log(JSON.stringify(this.cards[0]));
-    console.log(JSON.stringify(this.tests[0]));
-    console.log(JSON.stringify(this.planes[0]));
+  shuffle(deck: Card[]): Card[] {
+    return deck
+      .map((value): { card: Card; sort: number } => ({
+        card: value,
+        sort: Math.random()
+      }))
+      .sort((a, b): number => a.sort - b.sort)
+      .map((value): Card => value.card);
   }
 }
