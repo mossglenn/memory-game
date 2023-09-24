@@ -5,47 +5,40 @@ import { Layout } from '../Types.ts';
 
 export default class PlayScene extends Phaser.Scene {
   faces: string[] = GameSettings.deck.faces;
-  deck: Card[] = [];
+  deck: Card[];
   layout: Layout = this.findLayout(this.faces.length);
+  playZone: PlayZone;
 
   constructor() {
     super('play');
   }
 
   create() {
-    const playZoneSettings = {
+    const playZoneConfig = {
       scene: this,
+      x: 10,
+      y: 10,
       layout: this.layout,
-      width: GameSettings.table.playArea.width,
-      height: GameSettings.table.playArea.height
+      width: 750,
+      height: 750
     };
-    const playZone: PlayZone = new PlayZone(playZoneSettings);
-    playZone.zoneGroup.getChildren().map((zone) => {
-      Phaser.Display.Align.In.Center(this.add.text(0, 0, zone.name), zone);
-    });
+    this.playZone = new PlayZone(playZoneConfig);
+    this.add.existing(this.playZone);
+    this.deck = this.buildDeck(this.layout.cards, this.faces, this);
 
-    this.faces.map((face, index) => {
-      Phaser.Display.Align.In.Center(
-        this.add.sprite(0, 0, face),
-        playZone.zoneGroup.getMatching('name', index.toString()).shift()
-      );
-    });
-
-    this.deck = this.buildDeck(this.faces, this);
+    const shuffledDeck = this.shuffleDeck(this.deck);
     console.log(this.deck);
-    const delt = this.deal(this.deck, playZone.zoneGroup);
+    console.log(shuffledDeck);
   }
 
-  deal(deck: Card[], zoneGroup: Phaser.GameObjects.Group): string {
-    if (deck.length > zoneGroup.getLength()) {
-      console.log('To many cards, not enough zones');
+  deal(deck: Card[], dealPoints: Phaser.Geom.Point[]): string {
+    if (deck.length > dealPoints.length) {
+      console.log('To many cards, not enough dealPoints');
       return 'error';
     }
     deck.map((card, index) => {
-      const zone: Phaser.GameObjects.Zone = zoneGroup
-        .getMatching('name', index.toString())
-        .shift();
-      Phaser.Display.Align.In.Center(card, zone);
+      const dealPoint = dealPoints[index];
+      card.setPosition(dealPoint.x, dealPoint.y);
     });
     return 'success';
   }
@@ -59,13 +52,21 @@ export default class PlayScene extends Phaser.Scene {
       : testLayout;
   }
 
-  buildDeck(faces: string[], scene: Phaser.Scene): Card[] {
-    const deckFaces = faces.concat(faces);
+  buildDeck(num: number, faces: string[], scene: Phaser.Scene): Card[] {
+    //randomly collect the num of faces
+    const selectedFaces = [...faces]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, num);
+    const deckFaces = selectedFaces.concat([...selectedFaces]);
     const newDeck: Card[] = deckFaces.map((face): Card => {
       return new Card(face, scene);
     });
-    //this.shuffle(newDeck);
     return newDeck;
+  }
+
+  shuffleDeck(deck: Card[]) {
+    const shuffledDeck = [...deck].sort(() => 0.5 - Math.random());
+    return shuffledDeck;
   }
 
   shuffle(deck: Card[]): Card[] {

@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import { GameSettings } from './gameSettings.ts';
 
+let cardCount = 0;
+
 export default class Card extends Phaser.GameObjects.Plane {
+  id: number;
   face: string;
   scene: Phaser.Scene;
   public x: number;
@@ -19,6 +22,7 @@ export default class Card extends Phaser.GameObjects.Plane {
     backTexture = 'back'
   ) {
     super(scene, x, y, backTexture);
+    this.id = cardCount++;
     this.face = face;
     this.scene = scene;
     this.x = x;

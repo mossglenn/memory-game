@@ -1,7 +1,8 @@
 export const GameSettings = {
   card: {
     width: 128,
-    height: 173
+    height: 173,
+    margin: { x: 20, y: 20 } //shared between all four sides e.g. leftMargin = x/2
   },
   deck: {
     layout: [
@@ -14,6 +15,10 @@ export const GameSettings = {
     faces: ['card1', 'card2', 'card3', 'card4']
   },
   table: {
-    playArea: { width: 768 - 20, height: 768 - 20 }
+    playArea: {
+      width: 768,
+      height: 768,
+      margin: { x: 20, y: 20 }
+    }
   }
 };
