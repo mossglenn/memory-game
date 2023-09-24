@@ -1,7 +1,7 @@
 import { Layout } from './Types.ts';
 import { GameSettings } from './gameSettings.ts';
 
-export default class PlayZone extends Phaser.GameObjects.Zone {
+export default class PlayZone extends Phaser.GameObjects.Rectangle {
   scene: Phaser.Scene;
   x: number;
   y: number;
@@ -9,9 +9,8 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
   height: number;
   layout: Layout;
   private cardTotal: { width: number; height: number };
-  cardZone: Phaser.GameObjects.Zone;
+  cardZone: Phaser.GameObjects.Rectangle;
   dealPoints: Phaser.Geom.Point[];
-  // dealPoints: Phaser.Geom.Point[];
 
   constructor({
     scene,
@@ -24,9 +23,9 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
     scene: Phaser.Scene;
     x: number;
     y: number;
-    layout: Layout;
     width: number;
     height: number;
+    layout: Layout;
   }) {
     super(scene, x, y, width, height);
     this.scene = scene;
@@ -39,11 +38,12 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
       width: GameSettings.card.width + GameSettings.card.margin.x,
       height: GameSettings.card.height + GameSettings.card.margin.y
     };
+    scene.add.existing(this);
     this.cardZone = this.createCardZone();
     this.dealPoints = this.collectDealPoints(this.createAllRows());
   }
 
-  createCardZone(): Phaser.GameObjects.Zone {
+  createCardZone(): Phaser.GameObjects.Rectangle {
     const width = this.cardTotal.width * this.layout.cols;
     const height = this.cardTotal.height * this.layout.rows;
     if (width > this.width) {
@@ -52,12 +52,12 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
     if (height > this.height) {
       console.log('cardZone is taller than playZone');
     }
-    const cardZone = this.scene.add.zone(0, 0, width, height);
+    const cardZone = this.scene.add.rectangle(0, 0, width, height);
     Phaser.Display.Align.In.Center(cardZone, this);
     return cardZone;
   }
 
-  createNewPoint(
+  shiftNewPoint(
     point: Phaser.Geom.Point,
     xShift: number,
     yShift: number
@@ -69,17 +69,12 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
   }
 
   createRowPoints(rowY: number, cols: number): Phaser.Geom.Point[] {
-    const firstX = this.cardZone.getTopLeft().x! - this.cardTotal.width / 2;
-    const firstPoint = new Phaser.Geom.Point(firstX, rowY);
-    const rowPoints = [firstPoint];
+    const firstX = this.cardZone.getTopLeft().x! + this.cardTotal.width / 2;
+    const rowPoints = [new Phaser.Geom.Point(firstX, rowY)];
     const keys = [...Array(cols - 1).keys()];
     keys.map((key) => {
       rowPoints.push(
-        this.createNewPoint(
-          firstPoint,
-          firstPoint.x + this.cardTotal.width * (key + 1),
-          rowY
-        )
+        this.shiftNewPoint(rowPoints[key], this.cardTotal.width, 0)
       );
     });
     return rowPoints;
@@ -94,30 +89,17 @@ export default class PlayZone extends Phaser.GameObjects.Zone {
   }
 
   createAllRows(): Phaser.Geom.Point[][] {
-    const firstRowY = this.cardZone.getTopLeft().y! - this.cardTotal.height / 2;
+    const firstRowY = this.cardZone.getTopLeft().y! + this.cardTotal.height / 2;
     const rows: Phaser.Geom.Point[][] = [];
     const rowKeys = [...Array(this.layout.rows).keys()];
     rowKeys.map((key) => {
       rows.push(
         this.createRowPoints(
-          firstRowY - this.cardTotal.height * key,
+          firstRowY + this.cardTotal.height * key,
           this.layout.cols
         )
       );
     });
     return rows;
-  }
-
-  addTempGrid() {
-    this.scene.add.grid(
-      (this.width + 10) / 2,
-      (this.height + 10) / 2,
-      this.width,
-      this.height,
-      this.width / this.layout.cols,
-      this.height / this.layout.rows,
-      0x333333,
-      0.3
-    );
   }
 }

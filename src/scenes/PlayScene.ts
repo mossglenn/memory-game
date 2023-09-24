@@ -7,28 +7,31 @@ export default class PlayScene extends Phaser.Scene {
   faces: string[] = GameSettings.deck.faces;
   deck: Card[];
   layout: Layout = this.findLayout(this.faces.length);
-  playZone: PlayZone;
-
   constructor() {
     super('play');
+    this.deck = [];
   }
 
   create() {
+    const playZoneSize =
+      this.game.config.width > this.game.config.height
+        ? Number(this.game.config.height) - GameSettings.table.playArea.margin.y
+        : Number(this.game.config.width) - GameSettings.table.playArea.margin.x;
     const playZoneConfig = {
       scene: this,
-      x: 10,
-      y: 10,
+      x: (playZoneSize + GameSettings.table.playArea.margin.x) / 2,
+      y: (playZoneSize + GameSettings.table.playArea.margin.y) / 2,
       layout: this.layout,
-      width: 750,
-      height: 750
+      width:
+        Number(this.game.config.height) - GameSettings.table.playArea.margin.y,
+      height:
+        Number(this.game.config.height) - GameSettings.table.playArea.margin.y
     };
-    this.playZone = new PlayZone(playZoneConfig);
-    this.add.existing(this.playZone);
+    const playZone = new PlayZone(playZoneConfig);
     this.deck = this.buildDeck(this.layout.cards, this.faces, this);
-
     const shuffledDeck = this.shuffleDeck(this.deck);
-    console.log(this.deck);
-    console.log(shuffledDeck);
+    const dealt = this.deal(shuffledDeck, playZone.dealPoints);
+    console.log(dealt);
   }
 
   deal(deck: Card[], dealPoints: Phaser.Geom.Point[]): string {

@@ -16,7 +16,7 @@ export default class Card extends Phaser.GameObjects.Plane {
   constructor(
     face: string,
     scene: Phaser.Scene,
-    x = 0,
+    x = -2000,
     y = 0,
     frontBackground = 'front',
     backTexture = 'back'
@@ -34,8 +34,6 @@ export default class Card extends Phaser.GameObjects.Plane {
     this.setInteractive;
     //this.setTexture(this.frontTexture);
     scene.add.existing(this);
-    Phaser.GameObjects.Plane.prototype.originX = 0.5; //workaround for lack of alignment
-    Phaser.GameObjects.Plane.prototype.originY = 0.5;
   }
 
   createFrontTextureKey(
