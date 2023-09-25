@@ -32,6 +32,8 @@ export default class PlayScene extends Phaser.Scene {
     const shuffledDeck = this.shuffleDeck(this.deck);
     const dealt = this.deal(shuffledDeck, playZone.dealPoints);
     console.log(dealt);
+
+    this.input.on('pointerdown', this.flipCard);
   }
 
   deal(deck: Card[], dealPoints: Phaser.Geom.Point[]): string {
@@ -41,7 +43,20 @@ export default class PlayScene extends Phaser.Scene {
     }
     deck.map((card, index) => {
       const dealPoint = dealPoints[index];
-      card.setPosition(dealPoint.x, dealPoint.y);
+      card.setToPoint(dealPoints[index]);
+      //setPosition(dealPoint.x, dealPoint.y);
+      // card.on('POINTER_DOWN', () => {
+      //   console.log('pointer down!');
+      // });
+      // this.add
+      //   .rectangle(
+      //     dealPoint.x,
+      //     dealPoint.y,
+      //     GameSettings.card.width,
+      //     GameSettings.card.height
+      //   )
+      // .setName(card.id.toString())
+      // .setInteractive();
     });
     return 'success';
   }
@@ -64,6 +79,7 @@ export default class PlayScene extends Phaser.Scene {
     const newDeck: Card[] = deckFaces.map((face): Card => {
       return new Card(face, scene);
     });
+    console.log(newDeck);
     return newDeck;
   }
 
@@ -80,5 +96,13 @@ export default class PlayScene extends Phaser.Scene {
       }))
       .sort((a, b): number => a.sort - b.sort)
       .map((value): Card => value.card);
+  }
+
+  flipCard(
+    pointer: Phaser.Input.Pointer,
+    currentlyOver: Phaser.GameObjects.GameObject[]
+  ) {
+    console.log(pointer);
+    console.log(currentlyOver[0].name);
   }
 }

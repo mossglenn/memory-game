@@ -13,7 +13,7 @@ export const GameSettings = {
       { cards: 14, cols: 5, rows: 3 },
       { cards: 16, cols: 4, rows: 4 }
     ],
-    faces: ['card1', 'card2', 'card3', 'card4', 'card5', 'card6']
+    faces: ['card1', 'card2', 'card3', 'card4']
   },
   table: {
     playArea: {
