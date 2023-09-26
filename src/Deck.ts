@@ -28,16 +28,16 @@ export default class Deck {
     // return [...deck.cards].sort(() => 0.5 - Math.random());
   }
 
-  deal(dealPoints: Phaser.Geom.Point[]): string {
+  deal(dealPoints: Phaser.Geom.Point[]) {
     if (this.cards.length > dealPoints.length) {
       console.log('To many cards, not enough dealPoints');
-      return 'error';
     }
-    this.cards.map((card, index) => {
+    return this.cards.map((card, index) => {
       const dealPoint = dealPoints[index];
-      return card.setPosition(dealPoint.x, dealPoint.y);
+      const cardContainer = this.scene.add.container(dealPoint.x, dealPoint.y);
+      return cardContainer.add(card.setPosition(0, 0));
+      // return card.setPosition(dealPoint.x, dealPoint.y);
     });
-    return 'success';
   }
 
   static shuffle(deck: Card[]): Card[] {

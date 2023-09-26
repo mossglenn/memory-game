@@ -20,6 +20,8 @@ export default class Card extends Phaser.GameObjects.Plane {
 
   frontTexture: string;
 
+  direction: 'faceDown' | 'faceUp';
+
   constructor(
     face: string,
     scene: Phaser.Scene,
@@ -35,6 +37,7 @@ export default class Card extends Phaser.GameObjects.Plane {
     this.scene = scene;
     this.x = x;
     this.y = y;
+    this.direction = 'faceDown';
     this.frontBackground = frontBackground;
     this.backTexture = backTexture;
     this.frontTexture = this.createFrontTextureKey();
@@ -67,6 +70,12 @@ export default class Card extends Phaser.GameObjects.Plane {
   }
 
   flip() {
-    this.setTexture(this.frontTexture);
+    if (this.direction === 'faceDown') {
+      this.setTexture(this.frontTexture);
+      this.direction = 'faceUp';
+    } else {
+      this.setTexture(this.backTexture);
+      this.direction = 'faceDown';
+    }
   }
 }
