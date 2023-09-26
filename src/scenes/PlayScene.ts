@@ -1,18 +1,20 @@
-import Card from '../Card.ts';
-import PlayZone from '../PlayZone.ts';
-import { GameSettings } from '../gameSettings.ts';
-import { Layout } from '../Types.ts';
+import PlayZone from '../PlayZone';
+import { GameSettings } from '../gameSettings';
+import { Layout } from '../Types';
+import Deck from '../Deck';
 
 export default class PlayScene extends Phaser.Scene {
-  faces: string[] = GameSettings.deck.faces;
-  deck: Card[];
-  layout: Layout = this.findLayout(this.faces.length);
+  deck: Deck = new Deck(this, []); // Card[];
+
   constructor() {
     super('play');
-    this.deck = [];
   }
 
   create() {
+    const { faces } = GameSettings.deck;
+
+    const layout: Layout = PlayZone.findLayout(faces.length);
+
     const playZoneSize =
       this.game.config.width > this.game.config.height
         ? Number(this.game.config.height) - GameSettings.table.playArea.margin.y
@@ -21,64 +23,16 @@ export default class PlayScene extends Phaser.Scene {
       scene: this,
       x: (playZoneSize + GameSettings.table.playArea.margin.x) / 2,
       y: (playZoneSize + GameSettings.table.playArea.margin.y) / 2,
-      layout: this.layout,
+      layout,
       width:
         Number(this.game.config.height) - GameSettings.table.playArea.margin.y,
       height:
         Number(this.game.config.height) - GameSettings.table.playArea.margin.y
     };
     const playZone = new PlayZone(playZoneConfig);
-    this.deck = this.buildDeck(this.layout.cards, this.faces, this);
-    const shuffledDeck = this.shuffleDeck(this.deck);
-    const dealt = this.deal(shuffledDeck, playZone.dealPoints);
-    console.log(dealt);
-  }
 
-  deal(deck: Card[], dealPoints: Phaser.Geom.Point[]): string {
-    if (deck.length > dealPoints.length) {
-      console.log('To many cards, not enough dealPoints');
-      return 'error';
-    }
-    deck.map((card, index) => {
-      const dealPoint = dealPoints[index];
-      card.setPosition(dealPoint.x, dealPoint.y);
-    });
-    return 'success';
-  }
-
-  findLayout(facesSize: number): { cards: number; cols: number; rows: number } {
-    const testLayout = GameSettings.deck.layout.find(
-      ({ cards }): boolean => cards == facesSize * 2
-    );
-    return testLayout == undefined
-      ? { cards: 4, cols: 2, rows: 2 }
-      : testLayout;
-  }
-
-  buildDeck(num: number, faces: string[], scene: Phaser.Scene): Card[] {
-    //randomly collect the num of faces
-    const selectedFaces = [...faces]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, num);
-    const deckFaces = selectedFaces.concat([...selectedFaces]);
-    const newDeck: Card[] = deckFaces.map((face): Card => {
-      return new Card(face, scene);
-    });
-    return newDeck;
-  }
-
-  shuffleDeck(deck: Card[]) {
-    const shuffledDeck = [...deck].sort(() => 0.5 - Math.random());
-    return shuffledDeck;
-  }
-
-  shuffle(deck: Card[]): Card[] {
-    return deck
-      .map((value): { card: Card; sort: number } => ({
-        card: value,
-        sort: Math.random()
-      }))
-      .sort((a, b): number => a.sort - b.sort)
-      .map((value): Card => value.card);
+    const deck = new Deck(this, Deck.createCards(layout.cards, faces, this));
+    deck.shuffleDeck();
+    deck.deal(playZone.dealPoints);
   }
 }
