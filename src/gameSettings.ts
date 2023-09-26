@@ -1,8 +1,8 @@
-export const GameSettings = {
+const GameSettings = {
   card: {
     width: 128,
     height: 173,
-    margin: { x: 10, y: 10 } //shared between all four sides e.g. leftMargin = x/2
+    margin: { x: 10, y: 10 } // shared between all four sides e.g. leftMargin = x/2
   },
   deck: {
     layout: [
@@ -23,3 +23,4 @@ export const GameSettings = {
     }
   }
 };
+export default GameSettings;

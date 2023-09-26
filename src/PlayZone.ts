@@ -1,5 +1,5 @@
 import { Layout } from './Types';
-import { GameSettings } from './gameSettings';
+import GameSettings from './gameSettings';
 
 export default class PlayZone extends Phaser.GameObjects.Rectangle {
   scene: Phaser.Scene;

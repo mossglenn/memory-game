@@ -1,4 +1,4 @@
-import { CardKey } from '../AssetKeys.ts';
+import { CardKey } from '../AssetKeys';
 
 export default class Preloader extends Phaser.Scene {
   constructor() {
@@ -6,7 +6,7 @@ export default class Preloader extends Phaser.Scene {
   }
 
   preload(): void {
-    //card front/back size: 128 x 173 px
+    // card front/back size: 128 x 173 px
 
     this.load.image('back', 'assets/images/cards/back.png');
     this.load.image('front', 'assets/images/cards/front.png');

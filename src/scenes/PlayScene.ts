@@ -1,5 +1,5 @@
 import PlayZone from '../PlayZone';
-import { GameSettings } from '../gameSettings';
+import GameSettings from '../gameSettings';
 import { Layout } from '../Types';
 import Deck from '../Deck';
 
