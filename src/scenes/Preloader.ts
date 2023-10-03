@@ -14,6 +14,7 @@ export default class Preloader extends Phaser.Scene {
     this.load.image(CardKey.TWO, 'assets/images/cards/card2.png');
     this.load.image(CardKey.THREE, 'assets/images/cards/card3.png');
     this.load.image(CardKey.FOUR, 'assets/images/cards/card4.png');
+    this.load.image('playagain', 'assets/images/PlayAgainButton.png');
 
     // load static assets from url
     this.load.image(
