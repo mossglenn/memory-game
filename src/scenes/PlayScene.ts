@@ -13,8 +13,6 @@ export default class PlayScene extends Phaser.Scene {
 
   matchingCards: Card[] = [];
 
-  clickToPlayAgain = false;
-
   constructor() {
     super('play');
   }
@@ -53,10 +51,7 @@ export default class PlayScene extends Phaser.Scene {
         if (this.matchesAll === this.matchesFound) {
           this.winGame();
         }
-        if (this.clickToPlayAgain && this.cameras.main.zoom === 1) {
-          this.clickToPlayAgain = false;
-          this.scene.restart();
-        }
+
         if (this.cameras.main.zoom !== 1) {
           this.unZoom();
         } else if (
@@ -133,6 +128,5 @@ export default class PlayScene extends Phaser.Scene {
     console.log(`YOU WIN! You found ${this.matchesFound}`);
     this.add.text(100, 100, 'You WIN!', { fontSize: '64px', color: '#ff00ff' });
     this.add.image(350, 350, 'playagain');
-    this.clickToPlayAgain = true;
   }
 }
