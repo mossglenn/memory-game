@@ -1,17 +1,26 @@
 import Phaser from 'phaser';
-import { GameSettings } from './gameSettings.ts';
+import GameSettings from './gameSettings';
 
 let cardCount = 0;
 
 export default class Card extends Phaser.GameObjects.Plane {
   id: number;
+
   face: string;
+
   scene: Phaser.Scene;
+
   public x: number;
+
   public y: number;
+
   frontBackground: string;
+
   backTexture: string;
+
   frontTexture: string;
+
+  direction: 'faceDown' | 'faceUp';
 
   constructor(
     face: string,
@@ -22,17 +31,19 @@ export default class Card extends Phaser.GameObjects.Plane {
     backTexture = 'back'
   ) {
     super(scene, x, y, backTexture);
-    this.id = cardCount++;
+    cardCount += 1;
+    this.id = cardCount;
     this.face = face;
     this.scene = scene;
     this.x = x;
     this.y = y;
+    this.direction = 'faceDown';
     this.frontBackground = frontBackground;
     this.backTexture = backTexture;
     this.frontTexture = this.createFrontTextureKey();
     this.setName(this.face);
-    this.setInteractive;
-    //this.setTexture(this.frontTexture);
+    this.setInteractive();
+    // this.setTexture(this.frontTexture);
     scene.add.existing(this);
   }
 
@@ -53,12 +64,18 @@ export default class Card extends Phaser.GameObjects.Plane {
       GameSettings.card.width / 2,
       GameSettings.card.height / 2
     );
-    const newKey = key.toString() + '_' + Math.round(Math.random() * 1000);
+    const newKey = `${key.toString()}_${Math.round(Math.random() * 1000)}`;
     rt.saveTexture(newKey);
     return newKey;
   }
 
   flip() {
-    this.setTexture(this.frontTexture);
+    if (this.direction === 'faceDown') {
+      this.setTexture(this.frontTexture);
+      this.direction = 'faceUp';
+    } else {
+      this.setTexture(this.backTexture);
+      this.direction = 'faceDown';
+    }
   }
 }

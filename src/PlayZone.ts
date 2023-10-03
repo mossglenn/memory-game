@@ -1,15 +1,23 @@
-import { Layout } from './Types.ts';
-import { GameSettings } from './gameSettings.ts';
+import { Layout } from './Types';
+import GameSettings from './gameSettings';
 
 export default class PlayZone extends Phaser.GameObjects.Rectangle {
   scene: Phaser.Scene;
+
   x: number;
+
   y: number;
+
   width: number;
+
   height: number;
+
   layout: Layout;
+
   private cardTotal: { width: number; height: number };
+
   cardZone: Phaser.GameObjects.Rectangle;
+
   dealPoints: Phaser.Geom.Point[];
 
   constructor({
@@ -40,7 +48,7 @@ export default class PlayZone extends Phaser.GameObjects.Rectangle {
     };
     scene.add.existing(this);
     this.cardZone = this.createCardZone();
-    this.dealPoints = this.collectDealPoints(this.createAllRows());
+    this.dealPoints = this.createAllRows().flat(1);
   }
 
   createCardZone(): Phaser.GameObjects.Rectangle {
@@ -57,7 +65,7 @@ export default class PlayZone extends Phaser.GameObjects.Rectangle {
     return cardZone;
   }
 
-  shiftNewPoint(
+  private static shiftNewPoint(
     point: Phaser.Geom.Point,
     xShift: number,
     yShift: number
@@ -72,34 +80,39 @@ export default class PlayZone extends Phaser.GameObjects.Rectangle {
     const firstX = this.cardZone.getTopLeft().x! + this.cardTotal.width / 2;
     const rowPoints = [new Phaser.Geom.Point(firstX, rowY)];
     const keys = [...Array(cols - 1).keys()];
-    keys.map((key) => {
+    keys.map((key) =>
       rowPoints.push(
-        this.shiftNewPoint(rowPoints[key], this.cardTotal.width, 0)
-      );
-    });
+        PlayZone.shiftNewPoint(rowPoints[key], this.cardTotal.width, 0)
+      )
+    );
     return rowPoints;
-  }
-
-  collectDealPoints(rows: Phaser.Geom.Point[][]) {
-    const dealPoints: Phaser.Geom.Point[] = [];
-    rows.map((row) => {
-      dealPoints.push(...row);
-    });
-    return dealPoints;
   }
 
   createAllRows(): Phaser.Geom.Point[][] {
     const firstRowY = this.cardZone.getTopLeft().y! + this.cardTotal.height / 2;
     const rows: Phaser.Geom.Point[][] = [];
     const rowKeys = [...Array(this.layout.rows).keys()];
-    rowKeys.map((key) => {
+    rowKeys.map((key) =>
       rows.push(
         this.createRowPoints(
           firstRowY + this.cardTotal.height * key,
           this.layout.cols
         )
-      );
-    });
+      )
+    );
     return rows;
+  }
+
+  static findLayout(facesSize: number): {
+    cards: number;
+    cols: number;
+    rows: number;
+  } {
+    const testLayout = GameSettings.deck.layout.find(
+      ({ cards }): boolean => cards === facesSize * 2
+    );
+    return testLayout === undefined
+      ? { cards: 4, cols: 2, rows: 2 }
+      : testLayout;
   }
 }

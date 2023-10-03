@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import Preloader from './scenes/Preloader.ts';
-import PlayScene from './scenes/PlayScene.ts';
+import Preloader from './scenes/Preloader';
+import PlayScene from './scenes/PlayScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   parent: 'app',

@@ -1,18 +1,27 @@
-import Card from '../Card.ts';
-import PlayZone from '../PlayZone.ts';
-import { GameSettings } from '../gameSettings.ts';
-import { Layout } from '../Types.ts';
+import PlayZone from '../PlayZone';
+import GameSettings from '../gameSettings';
+import { Layout } from '../Types';
+import Deck from '../Deck';
+import Card from '../Card';
 
 export default class PlayScene extends Phaser.Scene {
-  faces: string[] = GameSettings.deck.faces;
-  deck: Card[];
-  layout: Layout = this.findLayout(this.faces.length);
+  deck: Deck = new Deck(this, []); // Card[];
+
+  matchesAll = GameSettings.deck.faces.length;
+
+  matchesFound = 0;
+
+  matchingCards: Card[] = [];
+
   constructor() {
     super('play');
-    this.deck = [];
   }
 
   create() {
+    const { faces } = GameSettings.deck;
+
+    const layout: Layout = PlayZone.findLayout(faces.length);
+
     const playZoneSize =
       this.game.config.width > this.game.config.height
         ? Number(this.game.config.height) - GameSettings.table.playArea.margin.y
@@ -21,64 +30,103 @@ export default class PlayScene extends Phaser.Scene {
       scene: this,
       x: (playZoneSize + GameSettings.table.playArea.margin.x) / 2,
       y: (playZoneSize + GameSettings.table.playArea.margin.y) / 2,
-      layout: this.layout,
+      layout,
       width:
         Number(this.game.config.height) - GameSettings.table.playArea.margin.y,
       height:
         Number(this.game.config.height) - GameSettings.table.playArea.margin.y
     };
     const playZone = new PlayZone(playZoneConfig);
-    this.deck = this.buildDeck(this.layout.cards, this.faces, this);
-    const shuffledDeck = this.shuffleDeck(this.deck);
-    const dealt = this.deal(shuffledDeck, playZone.dealPoints);
-    console.log(dealt);
-  }
 
-  deal(deck: Card[], dealPoints: Phaser.Geom.Point[]): string {
-    if (deck.length > dealPoints.length) {
-      console.log('To many cards, not enough dealPoints');
-      return 'error';
-    }
-    deck.map((card, index) => {
-      const dealPoint = dealPoints[index];
-      card.setPosition(dealPoint.x, dealPoint.y);
-    });
-    return 'success';
-  }
+    const deck = new Deck(this, Deck.createCards(layout.cards, faces, this));
+    deck.shuffleDeck();
+    deck.deal(playZone.dealPoints);
 
-  findLayout(facesSize: number): { cards: number; cols: number; rows: number } {
-    const testLayout = GameSettings.deck.layout.find(
-      ({ cards }): boolean => cards == facesSize * 2
+    this.input.on(
+      'pointerdown',
+      (
+        pointer: Phaser.Input.Pointer,
+        currentlyOver: Phaser.GameObjects.GameObject[]
+      ) => {
+        if (this.matchesAll === this.matchesFound) {
+          this.winGame();
+        }
+
+        if (this.cameras.main.zoom !== 1) {
+          this.unZoom();
+        } else if (
+          pointer &&
+          currentlyOver[0] !== undefined &&
+          currentlyOver[0].type === 'Plane' &&
+          this.matchingCards.length < 2
+        ) {
+          const selectedCard: Card = currentlyOver[0] as Card;
+          if (selectedCard.direction === 'faceDown') {
+            this.matchCard(selectedCard);
+          }
+        }
+      }
     );
-    return testLayout == undefined
-      ? { cards: 4, cols: 2, rows: 2 }
-      : testLayout;
   }
 
-  buildDeck(num: number, faces: string[], scene: Phaser.Scene): Card[] {
-    //randomly collect the num of faces
-    const selectedFaces = [...faces]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, num);
-    const deckFaces = selectedFaces.concat([...selectedFaces]);
-    const newDeck: Card[] = deckFaces.map((face): Card => {
-      return new Card(face, scene);
-    });
-    return newDeck;
+  matchCard(selCard: Card) {
+    selCard.flip();
+    this.matchingCards.push(selCard);
+    const cardsNum = this.matchingCards.length;
+    if (cardsNum > 1) {
+      const match = this.checkForMatch();
+      if (match) {
+        this.matchesFound += 1;
+        this.cameras.main.zoomTo(3);
+        this.cameras.main.pan(
+          selCard.parentContainer.x,
+          selCard.parentContainer.y
+        );
+        this.matchingCards[0].removeInteractive();
+        this.matchingCards[1].removeInteractive();
+        this.matchingCards = [];
+      } else {
+        console.log('that is not a match');
+        this.matchingCards[0].setTint(0xff6666);
+        this.matchingCards[1].setTint(0xff6666);
+
+        setTimeout(() => {
+          this.matchingCards[0].clearTint().flip();
+          this.matchingCards[1].clearTint().flip();
+          this.matchingCards = [];
+        }, 1000);
+      }
+    }
   }
 
-  shuffleDeck(deck: Card[]) {
-    const shuffledDeck = [...deck].sort(() => 0.5 - Math.random());
-    return shuffledDeck;
+  checkForMatch() {
+    console.log('checking for match');
+    return this.matchingCards[0].face === this.matchingCards[1].face;
   }
 
-  shuffle(deck: Card[]): Card[] {
-    return deck
-      .map((value): { card: Card; sort: number } => ({
-        card: value,
-        sort: Math.random()
-      }))
-      .sort((a, b): number => a.sort - b.sort)
-      .map((value): Card => value.card);
+  pauseAndFlipBack() {
+    setTimeout(this.flipCards, 1000);
+  }
+
+  flipCards() {
+    this.matchingCards[0].flip();
+    this.matchingCards[1].flip();
+    this.matchingCards = [];
+  }
+
+  unZoom() {
+    this.matchingCards = [];
+    this.cameras.main.zoomTo(1);
+    this.cameras.main.pan(
+      Number(this.game.config.width) / 2,
+      Number(this.game.config.height) / 2
+    );
+  }
+
+  winGame() {
+    this.unZoom();
+    console.log(`YOU WIN! You found ${this.matchesFound}`);
+    this.add.text(100, 100, 'You WIN!', { fontSize: '64px', color: '#ff00ff' });
+    this.add.image(350, 350, 'playagain');
   }
 }
