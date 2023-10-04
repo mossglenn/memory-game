@@ -22,6 +22,10 @@ export default class Card extends Phaser.GameObjects.Plane {
 
   direction: 'faceDown' | 'faceUp';
 
+  isFlipping = false;
+
+  rota = { y: 180 };
+
   constructor(
     face: string,
     scene: Phaser.Scene,
@@ -31,6 +35,7 @@ export default class Card extends Phaser.GameObjects.Plane {
     backTexture = 'back'
   ) {
     super(scene, x, y, backTexture);
+    this.modelRotation.y = Phaser.Math.DegToRad(0);
     cardCount += 1;
     this.id = cardCount;
     this.face = face;
@@ -70,12 +75,47 @@ export default class Card extends Phaser.GameObjects.Plane {
   }
 
   flip() {
-    if (this.direction === 'faceDown') {
-      this.setTexture(this.frontTexture);
-      this.direction = 'faceUp';
-    } else {
-      this.setTexture(this.backTexture);
-      this.direction = 'faceDown';
-    }
+    this.direction = this.direction === 'faceDown' ? 'faceUp' : 'faceDown';
+    this.scene.add.tween({
+      targets: [this.rota],
+      y: this.rota.y === 180 ? 0 : 180,
+      ease: Phaser.Math.Easing.Expo.Out,
+      duration: 500,
+      onStart: () => {
+        this.isFlipping = true;
+        this.scene.tweens.chain({
+          targets: this,
+          ease: Phaser.Math.Easing.Expo.InOut,
+          tweens: [
+            {
+              duration: 200,
+              scale: 1.1
+            },
+            { duration: 300, scale: 1 }
+          ]
+        });
+      },
+      onUpdate: () => {
+        // card.modelRotation.y = Phaser.Math.DegToRad(180) + Phaser.Math.DegToRad(rotation.y);
+        this.modelRotation.y = Phaser.Math.DegToRad(this.rota.y);
+        const cardRotation = Math.floor(
+          Phaser.Math.RadToDeg(this.modelRotation.y)
+        );
+        if (
+          (cardRotation >= 0 && cardRotation <= 90) ||
+          (cardRotation >= 270 && cardRotation <= 359)
+        ) {
+          this.setTexture(this.frontTexture);
+        } else {
+          this.setTexture(this.backTexture);
+        }
+      },
+      onComplete: () => {
+        this.isFlipping = false;
+        // if (callbackComplete) {
+        //   callbackComplete();
+        // }
+      }
+    });
   }
 }
