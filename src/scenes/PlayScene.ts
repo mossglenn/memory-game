@@ -1,4 +1,3 @@
-import { Game } from 'phaser';
 import PlayZone from '../PlayZone';
 import GameSettings from '../gameSettings';
 import { Layout } from '../Types';
@@ -116,7 +115,7 @@ export default class PlayScene extends Phaser.Scene {
       if (match) {
         this.matchesFound += 1;
         // add planes in a stack starting 200 from the top, moving down based on how many cards there are
-        const sideCard = this.add
+        this.add
           .plane(
             this.sidebarCenter.x,
             200 +
