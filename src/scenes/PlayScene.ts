@@ -7,6 +7,8 @@ import Card from '../Card';
 export default class PlayScene extends Phaser.Scene {
   deck: Deck = new Deck(this, []); // Card[];
 
+  sideCards: Phaser.GameObjects.Plane[] = [];
+
   matchesAll = GameSettings.deck.faces.length;
 
   matchesFound = 0;
@@ -63,31 +65,6 @@ export default class PlayScene extends Phaser.Scene {
       )
     );
     deck.deal(playZone.dealPoints);
-
-    // this.input.on(
-    //   'pointerdown',
-    //   (
-    //     pointer: Phaser.Input.Pointer,
-    //     currentlyOver: Phaser.GameObjects.GameObject[]
-    //   ) => {
-    //     if (this.matchesAll === this.matchesFound) {
-    //       this.winGame();
-    //     }
-    //     if (this.cameras.main.zoom !== 1) {
-    //       this.unZoom();
-    //     } else if (
-    //       pointer &&
-    //       currentlyOver[0] !== undefined &&
-    //       currentlyOver[0].type === 'Plane' &&
-    //       this.matchingCards.length < 2
-    //     ) {
-    //       const selectedCard: Card = currentlyOver[0] as Card;
-    //       if (selectedCard.direction === 'faceDown') {
-    //         this.matchCard(selectedCard);
-    //       }
-    //     }
-    //   }
-    // );
   }
 
   processClick(card: Phaser.GameObjects.GameObject) {
@@ -98,11 +75,6 @@ export default class PlayScene extends Phaser.Scene {
       this.matchingCards.length < 2
     ) {
       this.matchCard(card);
-    } else if (card instanceof Phaser.GameObjects.Plane) {
-      this.tweens.add({
-        targets: card,
-        x: card.x - GameSettings.card.width * 2
-      });
     }
   }
 
@@ -115,7 +87,7 @@ export default class PlayScene extends Phaser.Scene {
       if (match) {
         this.matchesFound += 1;
         // add planes in a stack starting 200 from the top, moving down based on how many cards there are
-        this.add
+        const sideCard = this.add
           .plane(
             this.sidebarCenter.x,
             200 +
@@ -126,10 +98,22 @@ export default class PlayScene extends Phaser.Scene {
                 this.matchesFound,
             selCard.frontTexture
           )
+          .setName(`sidebar_${selCard.name}`)
           .setScale(2)
-          .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
-            console.log('you clicked a sidecard'); // TODO: make this work!
-          });
+          .setInteractive();
+        this.sideCards.push(sideCard);
+        sideCard.on('pointerdown', () => {
+          if (sideCard.depth !== 99) {
+            this.sideCards.map((sidePlane, index) => {
+              sidePlane.setDepth(index);
+              sideCard.setDepth(99);
+            });
+          } else {
+            this.sideCards.map((sidePlane, index) => {
+              sidePlane.setDepth(index);
+            });
+          }
+        });
 
         this.matchingCards[0].removeInteractive();
         this.matchingCards[1].removeInteractive();
@@ -179,6 +163,15 @@ export default class PlayScene extends Phaser.Scene {
     // this.unZoom();
     console.log(`YOU WIN! You found ${this.matchesFound}`);
     this.add.text(100, 100, 'You WIN!', { fontSize: '64px', color: '#ff00ff' });
-    this.add.image(350, 350, 'playagain');
+    const restartButton = this.add
+      .sprite(350, 350, 'playagain')
+      .setInteractive();
+    restartButton.on('pointerdown', () => {
+      console.log('restarting scene');
+      this.sideCards = [];
+      this.matchingCards = [];
+      this.matchesFound = 0;
+      this.scene.restart();
+    });
   }
 }
